@@ -1,0 +1,58 @@
+CREATE DATABASE IF NOT EXISTS lms_db;
+USE lms_db;
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(255) NOT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `role` ENUM('ADMIN','MANAGER','STAFF') DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `employee_profile` (
+  `profile_id` BIGINT NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT NOT NULL,
+  `name` VARCHAR(55) NOT NULL,
+  `department` VARCHAR(55) NOT NULL,
+  `leave_balance` INT DEFAULT 20,
+  PRIMARY KEY (`profile_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `employee_profile_ibfk_1` 
+    FOREIGN KEY (`user_id`) 
+    REFERENCES `users`(`id`) 
+    ON DELETE CASCADE
+);
+
+
+CREATE TABLE IF NOT EXISTS `leave_request` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `employee_id` BIGINT NOT NULL,
+  `start_date` DATE NOT NULL,
+  `end_date` DATE NOT NULL,
+  `days` INT NOT NULL,
+  `status` ENUM('PENDING','APPROVED','REJECTED') DEFAULT 'PENDING',
+  PRIMARY KEY (`id`),
+  KEY `employee_id` (`employee_id`),
+  CONSTRAINT `leave_request_ibfk_1`
+    FOREIGN KEY (`employee_id`) 
+    REFERENCES `employee_profile`(`profile_id`) 
+    ON DELETE CASCADE
+);
+
+
+INSERT INTO `users` (`username`, `password`, `role`) VALUES
+('ahmed_khan', 'ahmed123', 'ADMIN'),
+('ali_rashid', 'ali123', 'MANAGER'),
+('sara_hussain', 'sara123', 'MANAGER'),
+('umer_javed', 'umer123', 'STAFF'),
+('fatima_zaidi', 'fatima123', 'STAFF'),
+('hassan_ahmed', 'hassan123', 'STAFF'),
+('ayesha_khalid', 'ayesha123', 'STAFF'),
+('zain_malik', 'zain123', 'STAFF'),
+('sania_butt', 'sania123', 'STAFF'),
+('omar_raza', 'omar123', 'STAFF'),
+('khalid_nawaz', 'khalid123', 'STAFF'),
+('amina_shaikh', 'amina123', 'STAFF'),
+('zeeshan_qureshi', 'zeeshan123', 'STAFF');
+
+
