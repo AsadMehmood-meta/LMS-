@@ -6,11 +6,15 @@ import com.itm.LMS.dto.UserDTO.PatchUserdto;
 import com.itm.LMS.dto.UserDTO.Userdto;
 import com.itm.LMS.exceptions.DuplicateUserException;
 import com.itm.LMS.mapper.UserMapper;
+import com.itm.LMS.model.Role;
 import com.itm.LMS.model.User;
 import com.itm.LMS.repo.UserRepository;
+import com.itm.LMS.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,25 +39,49 @@ public class UserService {
         return userMapper.toUserDto(saved);
     }
 
-    // Get by ID
     public Userdto getUserById(Long id) {
         return userMapper.toUserDto(userRepository.findById(id));
     }
 
     // Get all
-    public List<Userdto> getAllUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(userMapper::toUserDto)
-                .collect(Collectors.toList());
+    public List<Userdto> getAllUsers(CustomUserDetails currentUser) {
+        List<User> users;
+
+        if (currentUser.getRole() == Role.ADMIN) {
+            users = userRepository.findAll(); // method already exists
+        } else if (currentUser.getRole() == Role.MANAGER) {
+            users = userRepository.findByRoleIn(List.of(Role.MANAGER, Role.STAFF));
+        } else {
+            throw new AccessDeniedException("Not allowed to view all users");
+        }
+
+        return users.stream().map(userMapper::toUserDto).collect(Collectors.toList());
     }
 
+
     // Get all users with pagination
-    public Page<Userdto> getAllUsersPaginated(int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        return userRepository.findAllUsersPaginated(pageRequest)
-                .map(userMapper::toUserDto);
+    public Page<Userdto> getAllUsersPaginated(CustomUserDetails currentUser, int page, int size) {
+
+        List<User> users;
+
+        if (currentUser.getRole() == Role.ADMIN) {
+            users = userRepository.findAll(); // all users
+        } else if (currentUser.getRole() == Role.MANAGER) {
+            users = userRepository.findByRoleIn(List.of(Role.MANAGER, Role.STAFF));
+        } else {
+            throw new AccessDeniedException("Not allowed to view all users");
+        }
+
+        List<Userdto> dtos = users.stream().map(userMapper::toUserDto).collect(Collectors.toList());
+
+        // Manual pagination
+        int start = Math.min(page * size, dtos.size());
+        int end = Math.min(start + size, dtos.size());
+        List<Userdto> pageContent = dtos.subList(start, end);
+
+        return new PageImpl<>(pageContent, PageRequest.of(page, size), dtos.size());
     }
+
 
     // Update
     @Transactional

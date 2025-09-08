@@ -13,9 +13,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -60,15 +62,24 @@ public class UserRepository {
     }
 
     // Find by username
-    public User findByUsername(String username) {
+    public Optional<User> findByUsername(String username) {
         try {
             User user = queryFactory.selectFrom(qUser)
                     .where(qUser.username.eq(username))
                     .fetchOne();
-//            if (user == null) throw new UserNotFoundException(username);
-            return user;
+            return Optional.ofNullable(user); // Wrap User into Optional
         } catch (PersistenceException ex) {
             throw new DatabaseException("Error fetching user by username: " + username, ex);
+        }
+    }
+
+    public List<User> findByRoleIn(List<Role> roles) {
+        try {
+            return queryFactory.selectFrom(qUser)
+                    .where(qUser.role.in(roles))
+                    .fetch();
+        } catch (PersistenceException ex) {
+            throw new DatabaseException("Error fetching users by roles", ex);
         }
     }
 
