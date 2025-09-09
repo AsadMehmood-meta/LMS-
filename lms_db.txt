@@ -23,7 +23,6 @@ CREATE TABLE IF NOT EXISTS `employee_profile` (
     ON DELETE CASCADE
 );
 
-
 CREATE TABLE IF NOT EXISTS `leave_request` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `employee_id` BIGINT NOT NULL,
@@ -31,12 +30,21 @@ CREATE TABLE IF NOT EXISTS `leave_request` (
   `end_date` DATE NOT NULL,
   `days` INT NOT NULL,
   `status` ENUM('PENDING','APPROVED','REJECTED') DEFAULT 'PENDING',
+  `reason` VARCHAR(255) NULL,
+  `action_by` BIGINT NULL,
+  `action_at` DATE NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `employee_id` (`employee_id`),
+  KEY `action_by` (`action_by`),
   CONSTRAINT `leave_request_ibfk_1`
     FOREIGN KEY (`employee_id`) 
     REFERENCES `employee_profile`(`profile_id`) 
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+  CONSTRAINT `leave_request_ibfk_2`
+    FOREIGN KEY (`action_by`) 
+    REFERENCES `employee_profile`(`profile_id`)
+    ON DELETE SET NULL
 );
 
 
