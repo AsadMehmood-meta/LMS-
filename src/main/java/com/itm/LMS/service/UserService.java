@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,7 +32,8 @@ public class UserService {
     // Create
     @Transactional
     public Userdto createUser(CreateUserdto dto) {
-        if (userRepository.findByUsername(dto.getUsername()) != null) {
+        Optional<User> existingUser = userRepository.findByUsername(dto.getUsername());
+        if (existingUser.isPresent()) {
             throw new DuplicateUserException(dto.getUsername());
         }
         User user = userMapper.toUserEntity(dto);
@@ -74,7 +76,6 @@ public class UserService {
 
         List<Userdto> dtos = users.stream().map(userMapper::toUserDto).collect(Collectors.toList());
 
-        // Manual pagination
         int start = Math.min(page * size, dtos.size());
         int end = Math.min(start + size, dtos.size());
         List<Userdto> pageContent = dtos.subList(start, end);

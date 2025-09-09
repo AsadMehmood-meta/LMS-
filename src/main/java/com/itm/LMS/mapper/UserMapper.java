@@ -2,6 +2,7 @@ package com.itm.LMS.mapper;
 
 
 import com.itm.LMS.dto.UserDTO.CreateUserdto;
+import com.itm.LMS.dto.UserDTO.UserProfiledto;
 import com.itm.LMS.dto.UserDTO.Userdto;
 import com.itm.LMS.model.User;
 import org.mapstruct.Mapper;
@@ -13,4 +14,5 @@ public interface UserMapper {
     Userdto toUserDto(User user);
     List<Userdto> toUserDtoList(List<User> userList);
     User toUserEntity(CreateUserdto dto);
+    UserProfiledto toUserProfileDto (User user);
 }

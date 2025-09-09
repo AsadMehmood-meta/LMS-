@@ -5,8 +5,9 @@ import com.itm.LMS.model.Role;
 import lombok.Data;
 
 @Data
-public class Userdto {
+public class UserProfiledto {
     private Long id;
     private String username;
     private Role role;
+    private EmployeeProfileDto profile;
 }

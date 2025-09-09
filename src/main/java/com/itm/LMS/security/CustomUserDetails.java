@@ -19,7 +19,11 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        String roleName = user.getRole().name();
+        if (!roleName.startsWith("ROLE_")) {
+            roleName = "ROLE_" + roleName; 
+        }
+        return List.of(new SimpleGrantedAuthority(roleName));
     }
 
     @Override
@@ -30,6 +34,14 @@ public class CustomUserDetails implements UserDetails {
 
     public Long getId() { return user.getId(); }
     public Role getRole() { return user.getRole(); }
+
+    public Long getUserId() {
+        return user.getId();
+    }
+
+    public String getRoleName() {
+        return user.getRole().name();
+    }
 
     @Override
     public boolean isAccountNonExpired() { return true; }
@@ -42,4 +54,9 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() { return true; }
+
+    public boolean hasRole(String role) {
+        return this.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_" + role));
+    }
 }

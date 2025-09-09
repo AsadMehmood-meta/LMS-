@@ -1,5 +1,6 @@
 package com.itm.LMS.controller;
 
+import com.itm.LMS.payload.ApiResponse;
 import com.itm.LMS.security.JwtUtil;
 import com.itm.LMS.security.CustomUserDetailsService;
 import lombok.Data;
@@ -29,19 +30,23 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> login(@RequestBody AuthRequest request) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body("Invalid credentials");
+            // You can throw a custom exception here and handle it globally instead
+            return ResponseEntity.status(401)
+                    .body(ApiResponse.success("Invalid credentials", null));
         }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
         String token = jwtUtil.generateToken(userDetails);
 
-        return ResponseEntity.ok(Map.of("token", token));
+        return ResponseEntity.ok(
+                ApiResponse.success("Login successful", Map.of("token", token))
+        );
     }
 }
 
