@@ -1,4 +1,4 @@
-package com.itm.LMS.dto.LeaveRquestDTO;
+package com.itm.LMS.dto.LeaveRequestDTO;
 
 import com.itm.LMS.model.LeaveStatus;
 import lombok.*;

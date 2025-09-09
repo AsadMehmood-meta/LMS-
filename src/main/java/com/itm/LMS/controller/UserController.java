@@ -27,14 +27,6 @@ public class UserController {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Userdto>> createUser(@RequestBody CreateUserdto dto) {
-        Userdto created = userService.createUser(dto);
-        return ResponseEntity
-                .status(201)
-                .body(ApiResponse.success("User created successfully" , created));
-    }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
@@ -44,7 +36,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Users retrieved successfully" , users));
     }
 
-    @GetMapping("/paginated")
+    @GetMapping("/paged")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<ApiResponse<Page<Userdto>>> getAllUsersPaginated(
             @RequestParam(defaultValue = "0") int page,

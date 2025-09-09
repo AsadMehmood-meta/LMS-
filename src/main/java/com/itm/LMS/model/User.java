@@ -30,4 +30,8 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private EmployeeProfile profile;
+
+    public User(Long id) {
+        this.id = id;
+    }
 }

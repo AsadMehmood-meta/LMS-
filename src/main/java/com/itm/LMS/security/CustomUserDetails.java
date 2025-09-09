@@ -1,5 +1,6 @@
 package com.itm.LMS.security;
 
+import com.itm.LMS.model.EmployeeProfile;
 import com.itm.LMS.model.Role;
 import com.itm.LMS.model.User;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,8 +14,12 @@ public class CustomUserDetails implements UserDetails {
 
     private final User user;
 
-    public CustomUserDetails(User user) {
+    private final EmployeeProfile employeeProfile;
+
+
+    public CustomUserDetails(User user, EmployeeProfile employeeProfile) {
         this.user = user;
+        this.employeeProfile = employeeProfile;
     }
 
     @Override
@@ -41,6 +46,10 @@ public class CustomUserDetails implements UserDetails {
 
     public String getRoleName() {
         return user.getRole().name();
+    }
+
+    public EmployeeProfile getEmployeeProfile() {
+        return employeeProfile;
     }
 
     @Override
