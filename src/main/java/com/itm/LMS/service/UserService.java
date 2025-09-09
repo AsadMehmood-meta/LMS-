@@ -15,11 +15,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +30,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder; // Inject PasswordEncoder
 
     // Create
     @Transactional
@@ -36,7 +39,12 @@ public class UserService {
         if (existingUser.isPresent()) {
             throw new DuplicateUserException(dto.getUsername());
         }
+
         User user = userMapper.toUserEntity(dto);
+
+        // Encode password before saving
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+
         User saved = userRepository.save(user);
         return userMapper.toUserDto(saved);
     }
@@ -50,7 +58,7 @@ public class UserService {
         List<User> users;
 
         if (currentUser.getRole() == Role.ADMIN) {
-            users = userRepository.findAll(); // method already exists
+            users = userRepository.findAll();
         } else if (currentUser.getRole() == Role.MANAGER) {
             users = userRepository.findByRoleIn(List.of(Role.MANAGER, Role.STAFF));
         } else {
@@ -60,14 +68,12 @@ public class UserService {
         return users.stream().map(userMapper::toUserDto).collect(Collectors.toList());
     }
 
-
     // Get all users with pagination
     public Page<Userdto> getAllUsersPaginated(CustomUserDetails currentUser, int page, int size) {
-
         List<User> users;
 
         if (currentUser.getRole() == Role.ADMIN) {
-            users = userRepository.findAll(); // all users
+            users = userRepository.findAll();
         } else if (currentUser.getRole() == Role.MANAGER) {
             users = userRepository.findByRoleIn(List.of(Role.MANAGER, Role.STAFF));
         } else {
@@ -83,13 +89,18 @@ public class UserService {
         return new PageImpl<>(pageContent, PageRequest.of(page, size), dtos.size());
     }
 
-
     // Update
     @Transactional
     public Userdto updateUser(Long id, UpdateUserdto dto) {
         User existing = userRepository.findById(id);
+
         existing.setUsername(dto.getUsername());
-        existing.setPassword(dto.getPassword());
+
+        // Encode password if provided
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            existing.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
         existing.setRole(dto.getRole());
         User updated = userRepository.save(existing);
         return userMapper.toUserDto(updated);
@@ -99,12 +110,32 @@ public class UserService {
     @Transactional
     public Userdto patchUser(Long id, PatchUserdto dto) {
         User existing = userRepository.findById(id);
+
         if (dto.getUsername() != null) existing.setUsername(dto.getUsername());
-        if (dto.getPassword() != null) existing.setPassword(dto.getPassword());
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            existing.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
         if (dto.getRole() != null) existing.setRole(dto.getRole());
+
         User updated = userRepository.save(existing);
         return userMapper.toUserDto(updated);
     }
+
+    //reset password
+    @Transactional
+    public String resetUserPassword(Long userId) {
+        User user = userRepository.findById(userId);
+
+        // Generate temporary password (first 8 chars of UUID)
+        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
+
+        // Encode before saving
+        user.setPassword(passwordEncoder.encode(tempPassword));
+        userRepository.save(user);
+
+        return tempPassword; // give this to admin
+    }
+
 
     // Delete
     @Transactional

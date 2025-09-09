@@ -80,6 +80,13 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("User patched successfully", user));
     }
 
+    @PostMapping("/{id}/reset-password")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> resetPassword(@PathVariable Long id) {
+        String tempPassword = userService.resetUserPassword(id);
+        return ResponseEntity.ok("Temporary password for user: " + tempPassword);
+    }
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
